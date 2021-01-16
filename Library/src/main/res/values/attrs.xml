@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <attr name="roundImageViewStyle" format="reference"/>
+    <attr name="gridImageViewStyle" format="reference"/>
+    <declare-styleable name="RoundImageView">
+        <attr name="leftTopRadius" format="dimension" />
+        <attr name="leftBottomRadius" format="dimension"/>
+        <attr name="rightTopRadius" format="dimension"/>
+        <attr name="rightBottomRadius" format="dimension"/>
+        <attr name="strokeWidth" format="dimension"/>
+        <attr name="strokeColor" format="color"/>
+    </declare-styleable>
+    <declare-styleable name="GridImageView">
+        <attr name="isRuleSort" format="boolean"/>
+        <attr name="imageSpacing" format="dimension"/>
+        <attr name="imageCornerRadius" format="dimension"/>
+        <attr name="imageBorderWidth" format="dimension"/>
+        <attr name="imageBorderColor" format="color"/>
+        <attr name="singleViewHandle" format="boolean"/>
+        <attr name="imagePlaceHolder" format="reference"/>
+    </declare-styleable>
+</resources>

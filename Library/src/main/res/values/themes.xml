@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="RoundImageViewStyle">
+        <item name="leftTopRadius">2dp</item>
+        <item name="leftBottomRadius">2dp</item>
+        <item name="rightTopRadius">2dp</item>
+        <item name="rightBottomRadius">2dp</item>
+        <item name="strokeColor">#DEDEDE</item>
+        <item name="strokeWidth">0.5dp</item>
+    </style>
+    <style name="GridImageViewStyle">
+        <item name="isRuleSort">false</item>
+        <item name="imagePlaceHolder">@drawable/ic_loading</item>
+    </style>
+</resources>
