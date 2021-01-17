@@ -62,6 +62,7 @@ imageBorderWidth|无|设置图片边框宽度
 imageBorderColor|无|设置边框颜色
 singleViewHandle|无|是否对图片宽高进行处理
 imagePlaceHolder|setImagePlaceHolder|设置占位图,参数类型为drawable
+
 ** 注意：如果你能确保你的图片能在布局中完整显示,可以设置singleViewHandle为false **
 
 ### 在RecyclerView中显示
