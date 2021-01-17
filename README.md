@@ -67,7 +67,9 @@ imagePlaceHolder|setImagePlaceHolder|设置占位图,参数类型为drawable
 ### 在RecyclerView中显示
 
 > 必须设置setImageViewSize
+
 > 你无需进行任何处理
+
 > 具体实现请查看上面工程
 
 示例代码(Adapter) ** 具体实现请克隆我的工程 ** ：
