@@ -7,10 +7,8 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
 import com.gridimageview.yu.GridImageView
 import com.gridimageview.yu.OnImageItemClickListener
-import com.gridimageview.yu.RoundImageView
 
 class ImageAdapter(private val mData: MutableList<DongYu>) :
     RecyclerView.Adapter<ImageAdapter.ViewHolder>() {
@@ -38,12 +36,11 @@ class ImageAdapter(private val mData: MutableList<DongYu>) :
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val data = mData[position]
-        Glide.with(holder.itemView.context).load(data.icon).into(holder.icon)
         holder.name.text = data.name
         holder.content.text = (data.content + data.images.size)
         if (data.images.size == 1) {
-             holder.gridImageView.setImageViewSize(700, 400)
-          //  Glide.with(holder.itemView.context).load(data.images[0]).into(holder.roundImageView)
+            holder.gridImageView.setImageViewSize(700, 400)
+            //  Glide.with(holder.itemView.context).load(data.images[0]).into(holder.roundImageView)
         }
         holder.gridImageView.setImageUrls(data.images)
     }

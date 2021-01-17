@@ -1,8 +1,11 @@
 # GridImageView
 ## 宫格方式显示ImageView
+上面工程我用的是Kotlin写的，不会kotlin也没用关系，方法都一样的
 
 ### 效果图
 
+[截图1](https://drny.cc/image/Screenshot_2021-01-17-13-19-27-165_com.yu.gridima.jpg)
+[截图2](https://drny.cc/image/Screenshot_2021-01-17-13-19-33-363_com.yu.gridima.jpg)
 ![截图1](https://drny.cc/image/Screenshot_2021-01-17-13-19-27-165_com.yu.gridima.jpg)
 ![截图2](https://drny.cc/image/Screenshot_2021-01-17-13-19-33-363_com.yu.gridima.jpg)
 
@@ -23,6 +26,14 @@ dependencies {
 
 ### 3. 添加数据到集合
 
+**Java代码：**
+```
+List<String> list = new ArrayList<>();
+list.add("https://img.tupianzj.com/uploads/allimg/202010/9999/rn2b58e62da0.jpg");
+list.add("https://img.tupianzj.com/uploads/allimg/202009/9999/rne452d88a27.jpg");
+list.add("https://img.tupianzj.com/uploads/allimg/201911/9999/rna4bf242e64.jpg");
+```
+**Kotlin代码:**
 ```kotlin
 val imageData = mutableListOf<String>()
 imageData.add("图片直链")
@@ -30,18 +41,35 @@ imageData.add("图片直链")
 
 ### 4.设置要加载的图片链接
 
+**Java代码:**
+```
+GridImageView gridImageView = findViewById(R.id.gridImageView);
+gridImageView.setImageUrls(list);
+```
+**Kotlin代码:**
 ```kotlin
+val gridImageView: GridImageView = findViewById(R.id.gridImageView)
 gridImageView.setImageUrls(imageData)
 // 参数类型为 List<String>
 ```
 **注意：如果是单张图片显示你得设置图片宽高,如果不设置加载过程中可能显示异常**
 ```kotlin
-holder.gridImageView.setImageViewSize(700, 400)
+gridImageView.setImageViewSize(700, 400)
 ```
 你给出的宽高可以是图片原尺寸，会自动对图片宽高进行处理
 
 ### 5.点击事件
 
+**Java代码：**
+```
+gridImageView.setOnImageItemClickListener(new OnImageItemClickListener() {
+       @Override
+       public void onImageItemClick(ViewGroup viewGroup, View view, int position) {
+           Toast.makeText(MainActivity.this, position + "", Toast.LENGTH_SHORT).show();
+       }
+   });
+```
+**Kotlin代码:**
 ```kotlin
 gridImageView.setOnImageItemClickListener(object : OnImageItemClickListener {
         override fun onImageItemClick(parent: ViewGroup, v: View, position: Int) {
@@ -73,7 +101,7 @@ imagePlaceHolder|setImagePlaceHolder|设置占位图,参数类型为drawable
 
 > 具体实现请查看上面工程
 
-示例代码(Adapter) **具体实现请克隆我的工程** ：
+示例代码(Adapter-Kotlin) **具体实现请克隆我的工程** ：
 ```kotlin
 class ImageAdapter(private val mData: MutableList<DongYu>) :
     RecyclerView.Adapter<ImageAdapter.ViewHolder>() {
