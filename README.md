@@ -19,7 +19,7 @@ dependencies {
      android:layout_width="match_parent"
      android:layout_height="wrap_content" />
 ```
-** 注意: 宽度属性必须设置为match_parent, 在RecyclerView的Item中使用也一样 **
+**注意: 宽度属性必须设置为match_parent, 在RecyclerView的Item中使用也一样**
 
 ### 3. 添加数据到集合
 
@@ -34,7 +34,7 @@ imageData.add("图片直链")
 gridImageView.setImageUrls(imageData)
 // 参数类型为 List<String>
 ```
-** 注意：如果是单张图片显示你得设置图片宽高,如果不设置加载过程中可能显示异常 **
+**注意：如果是单张图片显示你得设置图片宽高,如果不设置加载过程中可能显示异常**
 ```kotlin
 holder.gridImageView.setImageViewSize(700, 400)
 ```
@@ -63,7 +63,7 @@ imageBorderColor|无|设置边框颜色
 singleViewHandle|无|是否对图片宽高进行处理
 imagePlaceHolder|setImagePlaceHolder|设置占位图,参数类型为drawable
 
-** 注意：如果你能确保你的图片能在布局中完整显示,可以设置singleViewHandle为false **
+**注意：如果你能确保你的图片能在布局中完整显示,可以设置singleViewHandle为false**
 
 ### 在RecyclerView中显示
 
@@ -73,7 +73,7 @@ imagePlaceHolder|setImagePlaceHolder|设置占位图,参数类型为drawable
 
 > 具体实现请查看上面工程
 
-示例代码(Adapter) ** 具体实现请克隆我的工程 ** ：
+示例代码(Adapter) **具体实现请克隆我的工程** ：
 ```kotlin
 class ImageAdapter(private val mData: MutableList<DongYu>) :
     RecyclerView.Adapter<ImageAdapter.ViewHolder>() {
