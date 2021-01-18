@@ -385,7 +385,7 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
                         imageViewWidth = resource.minimumWidth
                         imageViewHeight = resource.minimumHeight
                         // 单个 View 进行宽高处理
-                        if (singleViewHandle) {
+                        if (singleViewHandle || imageViewHeight > parentWidth || imageViewWidth > parentWidth) {
                             singleImageViewSurplus(parentWidth)
                         }
                         return false
@@ -398,7 +398,7 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
                 .into(child)
         } else {
             // 单个 View 进行宽高处理
-            if (singleViewHandle) {
+            if (singleViewHandle || imageViewHeight > parentWidth || imageViewWidth > parentWidth) {
                 singleImageViewSurplus(parentWidth)
             }
             Glide.with(context).load(mUrls[0]).override(imageViewWidth, imageViewHeight)
