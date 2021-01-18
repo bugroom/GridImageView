@@ -38,6 +38,7 @@ class ImageAdapter(private val mData: MutableList<DongYu>) :
         val data = mData[position]
         holder.name.text = data.name
         holder.content.text = (data.content + data.images.size)
+        holder.icon.setImageResource(data.icon)
         if (data.images.size == 1) {
             holder.gridImageView.setImageViewSize(700, 400)
             //  Glide.with(holder.itemView.context).load(data.images[0]).into(holder.roundImageView)

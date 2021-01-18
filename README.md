@@ -1,6 +1,6 @@
 # GridImageView
 ## 宫格方式显示ImageView
-上面工程我用的是Kotlin写的，不会kotlin也没用关系，方法都一样的
+上面工程我用的是Kotlin写的，不会kotlin也没有关系，方法都一样的
 
 ### 效果图
 
