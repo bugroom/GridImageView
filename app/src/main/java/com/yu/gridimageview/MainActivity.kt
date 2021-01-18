@@ -18,14 +18,17 @@ class MainActivity : AppCompatActivity() {
         val recyclerView: RecyclerView = findViewById(R.id.recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.addItemDecoration(LinearItemDecoration())
-        recyclerView.adapter = ImageAdapter(mData)
+        val adapter = ImageAdapter(mData)
+        recyclerView.adapter = adapter
     }
 
     private fun getData() {
 
-        val url1 = "https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=3363295869,2467511306&fm=26&gp=0.jpg"
+        val url1 =
+            "https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=3363295869,2467511306&fm=26&gp=0.jpg"
 
-        val url2 = "https://ss0.bdstatic.com/70cFuHSh_Q1YnxGkpoWK1HF6hhy/it/u=2853553659,1775735885&fm=26&gp=0.jpg"
+        val url2 =
+            "https://ss0.bdstatic.com/70cFuHSh_Q1YnxGkpoWK1HF6hhy/it/u=2853553659,1775735885&fm=26&gp=0.jpg"
 
         val url3 = "https://t7.baidu.com/it/u=86095685,3663716840&fm=193&f=GIF"
 
@@ -36,11 +39,13 @@ class MainActivity : AppCompatActivity() {
                 imageData.add(url3)
             } else {
                 for (j in 0 until 3 * i) {
-                    imageData.add(when {
-                        j % 3 == 1 -> url1
-                        j % 3 == 0 -> url2
-                        else -> url3
-                    })
+                    imageData.add(
+                        when {
+                            j % 3 == 1 -> url1
+                            j % 3 == 0 -> url2
+                            else -> url3
+                        }
+                    )
                 }
             }
             val dongYu = DongYu(
@@ -53,7 +58,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private class LinearItemDecoration: RecyclerView.ItemDecoration() {
+    private class LinearItemDecoration : RecyclerView.ItemDecoration() {
         override fun getItemOffsets(
             outRect: Rect,
             view: View,
