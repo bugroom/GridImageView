@@ -18,5 +18,9 @@
         <attr name="imageBorderColor" format="color"/>
         <attr name="singleViewHandle" format="boolean"/>
         <attr name="imagePlaceHolder" format="reference"/>
+        <attr name="imageTipsGravity" format="flags">
+            <flag name="top" value="0"/>
+            <flag name="bottom" value="1"/>
+        </attr>
     </declare-styleable>
 </resources>

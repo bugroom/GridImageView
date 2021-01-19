@@ -9,7 +9,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.gif.GifDrawable
 import com.bumptech.glide.request.target.Target
+import kotlin.math.min
 
 /**
  *   宫格方式显示 ImageView
@@ -74,6 +76,8 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
      */
     private var singleViewHandle: Boolean
 
+    private var imageTipsGravity: Int
+
     /**
      *  单个显示的图片宽高度
      */
@@ -118,27 +122,54 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
 
             singleViewHandle = getBoolean(R.styleable.GridImageView_singleViewHandle, true)
 
+            imageTipsGravity = getInteger(R.styleable.GridImageView_imageTipsGravity, RoundImageView.GRAVITY_TOP)
+
             recycle()
 
         }
     }
 
+    /**
+     *  设置是否进行规则排序
+     *  @param ruleSort 排序
+     */
     fun setImageRuleSort(ruleSort: Boolean) {
         this.isRuleSort = ruleSort
         requestLayout()
     }
 
+    /**
+     *  设置图片宽高(单张图片显示时使用)
+     *  @param width 图片宽
+     *  @param height 图片高
+     */
     fun setImageViewSize(width: Int, height: Int) {
         this.imageViewWidth = width
         this.imageViewHeight = height
     }
 
+    /**
+     *  设置加载占位图
+     *  @param placeHolder drawable
+     */
     fun setImagePlaceHolder(placeHolder: Drawable) {
         this.imagePlaceHolder = placeHolder
     }
 
+    /**
+     *  设置图片之间的间隔
+     *  @param spacing 间隔
+     */
     fun setImageSpacing(spacing: Int) {
         this.imageSpacing = spacing
+    }
+
+    /**
+     *  设置图片提示位置
+     *  @param gravity 0 And 1 -> top bottom
+     */
+    fun setImageTipsGravity(gravity: Int) {
+        this.imageTipsGravity = gravity
     }
 
     fun setOnImageItemClickListener(listener: OnImageItemClickListener) {
@@ -152,17 +183,25 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
         }
         if (visibility == GONE) visibility = VISIBLE
 
-        mUrls.clear()
-        mUrls.addAll(urls)
+        val size = min(urls.size, 9)
 
-        val size = urls.size
-        if (size > 9) throw IndexOutOfBoundsException("childView count must be < 9\n暂时只支持最大显示9个")
+        mUrls.clear()
+        if (urls.size > 9) {
+            urls.forEachIndexed { index, url ->
+                if (index < 9) {
+                    mUrls.add(url)
+                }
+            }
+        } else {
+            mUrls.addAll(urls)
+        }
 
         if (size > childCount) {
             for (i in childCount until size) {
                 val roundImageView = RoundImageView(context)
                 roundImageView.setStrokeWidth(imageStrokeWidth)
                 roundImageView.setStrokeColor(imageBorderColor)
+                roundImageView.setImageTipsGravity(imageTipsGravity)
                 roundImageView.setOnClickListener {
                     if (::onImageItemClickListener.isInitialized) {
                         onImageItemClickListener.onImageItemClick(this, it, i)
@@ -188,10 +227,29 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
             }
         }
 
+        if (urls.size > 9) {
+            val child = getChildAt(8)
+            if (child is RoundImageView) {
+                child.setImageCount(urls.size)
+            }
+        }
+
+        if (size == 1) return
+
         for (i in 0 until size) {
             val child = getChildAt(i)
             if (child is ImageView) {
+                if (child is RoundImageView) child.setImageType(0)
                 Glide.with(context).load(mUrls[i]).centerCrop()
+                    .override(Target.SIZE_ORIGINAL)
+                    .listener(object : RequestListener() {
+                        override fun onRequestSuccess(resource: Drawable): Boolean {
+                            refreshImageType(child, resource)
+                            return false
+                        }
+
+                        override fun onRequestFail() {}
+                    })
                     .placeholder(imagePlaceHolder).error(imagePlaceHolder).into(child)
             }
         }
@@ -242,7 +300,14 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
                 else availableWidth else (availableWidth - imageSpacing * (span - 1)) / span
                 val childHeight = when (span) {
                     1 -> if (mUrls.size == 1) imageViewHeight else childWidth / 2
-                    2 -> (availableWidth - imageSpacing * 2) / 3
+                    2 -> {
+                        val i = if (mUrls.size > 4) 3 else 2
+                        if (i == 2) {
+                            availableWidth / i
+                        } else {
+                            (availableWidth - imageSpacing * 2) / 3
+                        }
+                    }
                     else -> childWidth
                 }
                 val childWidthMeasureSpec =
@@ -382,8 +447,9 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
                 .override(Target.SIZE_ORIGINAL)
                 .listener(object : RequestListener() {
                     override fun onRequestSuccess(resource: Drawable): Boolean {
-                        imageViewWidth = resource.minimumWidth
-                        imageViewHeight = resource.minimumHeight
+                        imageViewWidth = resource.intrinsicWidth
+                        imageViewHeight = resource.intrinsicHeight
+                        refreshImageType(child, resource)
                         // 单个 View 进行宽高处理
                         if (singleViewHandle || imageViewHeight > parentWidth || imageViewWidth > parentWidth) {
                             singleImageViewSurplus(parentWidth)
@@ -401,7 +467,15 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
             if (singleViewHandle || imageViewHeight > parentWidth || imageViewWidth > parentWidth) {
                 singleImageViewSurplus(parentWidth)
             }
-            Glide.with(context).load(mUrls[0]).override(imageViewWidth, imageViewHeight)
+            Glide.with(context).load(mUrls[0]).override(Target.SIZE_ORIGINAL)
+                .listener(object : RequestListener() {
+                    override fun onRequestSuccess(resource: Drawable): Boolean {
+                        refreshImageType(child, resource)
+                        return false
+                    }
+
+                    override fun onRequestFail() {}
+                })
                 .centerCrop().placeholder(imagePlaceHolder).into(child)
         }
     }
@@ -457,6 +531,17 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
                 setRightBottomRadius(rightBottom)
                 setLeftBottomRadius(leftBottom)
             }
+        }
+    }
+
+    private fun refreshImageType(child: View, resource: Drawable) {
+        if (child is RoundImageView) {
+            val type = when {
+                resource is GifDrawable -> RoundImageView.TYPE_GIF
+                resource.intrinsicHeight > getWindowHeight(context) -> RoundImageView.TYPE_LONG
+                else -> 0
+            }
+            child.setImageType(type)
         }
     }
 

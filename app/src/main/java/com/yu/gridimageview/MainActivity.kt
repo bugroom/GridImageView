@@ -32,11 +32,13 @@ class MainActivity : AppCompatActivity() {
 
         val url3 = "https://t7.baidu.com/it/u=86095685,3663716840&fm=193&f=GIF"
 
+        val url4 = "https://drny.cc/image/Screenshot_2021-01-19-12-15-18-134_com.android.se.jpg"
+
         repeat(1000) {
             val imageData = mutableListOf<String>()
             val i = (0..3).random()
             if (i == 1) {
-                imageData.add(url3)
+                imageData.add(url4)
             } else {
                 for (j in 0 until 3 * i) {
                     imageData.add(
