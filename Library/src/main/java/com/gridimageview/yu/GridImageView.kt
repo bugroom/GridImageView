@@ -1,17 +1,14 @@
 package com.gridimageview.yu
 
 import android.content.Context
-import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.Drawable
-import android.text.InputType
 import android.util.AttributeSet
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import com.bumptech.glide.Glide
-import com.bumptech.glide.gifdecoder.GifDecoder
 import com.bumptech.glide.load.resource.gif.GifDrawable
 import com.bumptech.glide.request.target.Target
 import kotlin.math.min
@@ -125,7 +122,8 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
 
             singleViewHandle = getBoolean(R.styleable.GridImageView_singleViewHandle, true)
 
-            imageTipsGravity = getInteger(R.styleable.GridImageView_imageTipsGravity, RoundImageView.GRAVITY_TOP)
+            imageTipsGravity =
+                getInteger(R.styleable.GridImageView_imageTipsGravity, RoundImageView.GRAVITY_TOP)
 
             recycle()
 
@@ -248,6 +246,7 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
                     .listener(object : RequestListener<Drawable>() {
 
                         override fun onRequestSuccess(resource: Drawable): Boolean {
+                            child.setImageDrawable(resource)
                             if (child is RoundImageView) {
                                 val type = when {
                                     resource is GifDrawable -> RoundImageView.TYPE_GIF
@@ -257,7 +256,7 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
                                 child.setImageType(type)
                             }
 
-                            return false
+                            return true
                         }
 
                         override fun onRequestFail() {}
@@ -467,7 +466,8 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
                         if (singleViewHandle || imageViewHeight > parentWidth || imageViewWidth > parentWidth) {
                             singleImageViewSurplus(parentWidth)
                         }
-                        return false
+                        child.setImageDrawable(resource)
+                        return true
                     }
 
                     override fun onRequestFail() {
@@ -490,12 +490,13 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
                 .listener(object : RequestListener<Drawable>() {
                     override fun onRequestSuccess(resource: Drawable): Boolean {
                         if (resource is GifDrawable) {
-                           type = RoundImageView.TYPE_GIF
+                            type = RoundImageView.TYPE_GIF
                         }
                         if (child is RoundImageView) {
                             child.setImageType(type)
                         }
-                        return false
+                        child.setImageDrawable(resource)
+                        return true
                     }
 
                     override fun onRequestFail() {}
