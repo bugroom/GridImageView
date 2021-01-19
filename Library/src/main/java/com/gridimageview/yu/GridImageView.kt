@@ -1,8 +1,13 @@
 package com.gridimageview.yu
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.drawable.AdaptiveIconDrawable
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.os.Build
 import android.util.AttributeSet
 import android.util.Log
 import android.view.View
@@ -76,7 +81,15 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
      */
     private var singleViewHandle: Boolean
 
+    /**
+     *  图片提示显示位置
+     */
     private var imageTipsGravity: Int
+
+    /**
+     *  手机屏幕高度
+     */
+    private val windowHeight: Int
 
     /**
      *  单个显示的图片宽高度
@@ -128,6 +141,8 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
             recycle()
 
         }
+
+        windowHeight = getWindowHeight(context)
     }
 
     /**
@@ -234,36 +249,6 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
                 child.setImageCount(urls.size)
             }
         }
-
-        if (size == 1) return
-
-        for (i in 0 until size) {
-            val child = getChildAt(i)
-            if (child is ImageView) {
-                if (child is RoundImageView) child.setImageType(0)
-                Glide.with(context).load(mUrls[i]).centerCrop()
-                    .override(Target.SIZE_ORIGINAL)
-                    .listener(object : RequestListener<Drawable>() {
-
-                        override fun onRequestSuccess(resource: Drawable): Boolean {
-                            child.setImageDrawable(resource)
-                            if (child is RoundImageView) {
-                                val type = when {
-                                    resource is GifDrawable -> RoundImageView.TYPE_GIF
-                                    resource.intrinsicHeight > getWindowHeight(context) -> RoundImageView.TYPE_LONG
-                                    else -> 0
-                                }
-                                child.setImageType(type)
-                            }
-
-                            return true
-                        }
-
-                        override fun onRequestFail() {}
-
-                    }).placeholder(imagePlaceHolder).error(imagePlaceHolder).into(child)
-            }
-        }
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -274,8 +259,6 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
         }
 
         val parentWidth = MeasureSpec.getSize(widthMeasureSpec)
-        if (mUrls.size == 1)
-            loadSingleImageView(parentWidth)
 
         val availableWidth = parentWidth - paddingLeft - paddingRight
         var resultWidth: Int
@@ -340,19 +323,15 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
         resultWidth += paddingLeft + paddingRight
         resultHeight += paddingTop + paddingBottom
         setMeasuredDimension(resultWidth, resultHeight)
+        if (mUrls.size == 1) {
+            loadSingleImageView(parentWidth)
+        }
     }
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
 
         if (mUrls.size == 0) {
             return
-        }
-
-        if (mUrls.size == 1) {
-            val child = getChildAt(0)
-            if (child is RoundImageView) {
-                child.setImageRadius(imageCornerRadius)
-            }
         }
 
         var childLeft: Int
@@ -415,6 +394,24 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
                 }
             }
         }
+
+        if (mUrls.size == 1) {
+            val child = getChildAt(0)
+            if (child is RoundImageView) {
+                child.setImageRadius(imageCornerRadius)
+            }
+        }
+
+        if (mUrls.size > 1) {
+            for (i in 0 until mUrls.size) {
+                val child = getChildAt(i)
+                if (child is ImageView) {
+                    refreshImageTip(child, mUrls[i])
+                    Glide.with(context).load(mUrls[i]).centerCrop()
+                        .placeholder(imagePlaceHolder).error(imagePlaceHolder).into(child)
+                }
+            }
+        }
     }
 
     /**
@@ -466,8 +463,7 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
                         if (singleViewHandle || imageViewHeight > parentWidth || imageViewWidth > parentWidth) {
                             singleImageViewSurplus(parentWidth)
                         }
-                        child.setImageDrawable(resource)
-                        return true
+                        return false
                     }
 
                     override fun onRequestFail() {
@@ -476,10 +472,9 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
                 })
                 .into(child)
         } else {
-            var type = 0
-            if (child is RoundImageView) {
-                if (imageViewHeight > getWindowHeight(context)) {
-                    type = RoundImageView.TYPE_LONG
+            if (imageViewHeight > windowHeight) {
+                if (child is RoundImageView) {
+                    child.setImageType(RoundImageView.TYPE_LONG)
                 }
             }
             // 单个 View 进行宽高处理
@@ -489,14 +484,12 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
             Glide.with(context).load(mUrls[0]).override(imageViewWidth, imageViewHeight)
                 .listener(object : RequestListener<Drawable>() {
                     override fun onRequestSuccess(resource: Drawable): Boolean {
-                        if (resource is GifDrawable) {
-                            type = RoundImageView.TYPE_GIF
-                        }
                         if (child is RoundImageView) {
-                            child.setImageType(type)
+                            if (resource is GifDrawable) {
+                                child.setImageType(RoundImageView.TYPE_GIF)
+                            }
                         }
-                        child.setImageDrawable(resource)
-                        return true
+                        return false
                     }
 
                     override fun onRequestFail() {}
@@ -560,16 +553,42 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
         }
     }
 
-    /*
-    private fun randomColorDrawable() {
-        if (imagePlaceHolder == null) {
-            val red = (150..200).random()
-            val green = (150..200).random()
-            val blue = (150..200).random()
-            imagePlaceHolder = ColorDrawable(Color.rgb(red, green, blue))
+    private fun refreshImageTip(child: ImageView, url: String) {
+        if (child is RoundImageView) {
+            Glide.with(context).load(url).override(Target.SIZE_ORIGINAL)
+                .listener(object : RequestListener<Drawable>() {
+                    override fun onRequestSuccess(resource: Drawable): Boolean {
+                        if (resource is GifDrawable) {
+                            child.setImageType(RoundImageView.TYPE_GIF)
+                        } else {
+                            val bitmap = getBitmap(resource)
+                            child.setImageType(if (bitmap.height > windowHeight) RoundImageView.TYPE_LONG else 0)
+                        }
+                        return true
+                    }
+
+                    override fun onRequestFail() {}
+
+                }).preload()
         }
     }
-     */
+
+    fun getBitmap(drawable: Drawable): Bitmap {
+        val bitmap: Bitmap
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && drawable is AdaptiveIconDrawable) {
+            bitmap = Bitmap.createBitmap(
+                drawable.getIntrinsicWidth(),
+                drawable.getIntrinsicHeight(),
+                Bitmap.Config.ARGB_8888
+            )
+            val c = Canvas(bitmap)
+            drawable.setBounds(0, 0, c.width, c.height)
+            drawable.draw(c)
+        } else {
+            bitmap = (drawable as BitmapDrawable).bitmap
+        }
+        return bitmap
+    }
 
     /**
      *      2 3 4 5 6 7 8 9
