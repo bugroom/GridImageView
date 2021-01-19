@@ -1,14 +1,17 @@
 package com.gridimageview.yu
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.Drawable
+import android.text.InputType
 import android.util.AttributeSet
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.gifdecoder.GifDecoder
 import com.bumptech.glide.load.resource.gif.GifDrawable
 import com.bumptech.glide.request.target.Target
 import kotlin.math.min
@@ -242,15 +245,24 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
                 if (child is RoundImageView) child.setImageType(0)
                 Glide.with(context).load(mUrls[i]).centerCrop()
                     .override(Target.SIZE_ORIGINAL)
-                    .listener(object : RequestListener() {
+                    .listener(object : RequestListener<Drawable>() {
+
                         override fun onRequestSuccess(resource: Drawable): Boolean {
-                            refreshImageType(child, resource)
+                            if (child is RoundImageView) {
+                                val type = when {
+                                    resource is GifDrawable -> RoundImageView.TYPE_GIF
+                                    resource.intrinsicHeight > getWindowHeight(context) -> RoundImageView.TYPE_LONG
+                                    else -> 0
+                                }
+                                child.setImageType(type)
+                            }
+
                             return false
                         }
 
                         override fun onRequestFail() {}
-                    })
-                    .placeholder(imagePlaceHolder).error(imagePlaceHolder).into(child)
+
+                    }).placeholder(imagePlaceHolder).error(imagePlaceHolder).into(child)
             }
         }
     }
@@ -441,15 +453,16 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
         if (child !is ImageView) {
             throw ClassCastException("childView must be ImageView.\nchildView必须是ImageView")
         }
+
         if (imageViewWidth <= 0 || imageViewHeight <= 0) {
             Log.w(TAG, "please set imageWidth and imageHeight.")
-            Glide.with(context).load(mUrls[0]).centerCrop()
+            Glide.with(context).load(mUrls[0])
                 .override(Target.SIZE_ORIGINAL)
-                .listener(object : RequestListener() {
+                .placeholder(imagePlaceHolder)
+                .listener(object : RequestListener<Drawable>() {
                     override fun onRequestSuccess(resource: Drawable): Boolean {
                         imageViewWidth = resource.intrinsicWidth
                         imageViewHeight = resource.intrinsicHeight
-                        refreshImageType(child, resource)
                         // 单个 View 进行宽高处理
                         if (singleViewHandle || imageViewHeight > parentWidth || imageViewWidth > parentWidth) {
                             singleImageViewSurplus(parentWidth)
@@ -463,18 +476,30 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
                 })
                 .into(child)
         } else {
+            var type = 0
+            if (child is RoundImageView) {
+                if (imageViewHeight > getWindowHeight(context)) {
+                    type = RoundImageView.TYPE_LONG
+                }
+            }
             // 单个 View 进行宽高处理
             if (singleViewHandle || imageViewHeight > parentWidth || imageViewWidth > parentWidth) {
                 singleImageViewSurplus(parentWidth)
             }
-            Glide.with(context).load(mUrls[0]).override(Target.SIZE_ORIGINAL)
-                .listener(object : RequestListener() {
+            Glide.with(context).load(mUrls[0]).override(imageViewWidth, imageViewHeight)
+                .listener(object : RequestListener<Drawable>() {
                     override fun onRequestSuccess(resource: Drawable): Boolean {
-                        refreshImageType(child, resource)
+                        if (resource is GifDrawable) {
+                           type = RoundImageView.TYPE_GIF
+                        }
+                        if (child is RoundImageView) {
+                            child.setImageType(type)
+                        }
                         return false
                     }
 
                     override fun onRequestFail() {}
+
                 })
                 .centerCrop().placeholder(imagePlaceHolder).into(child)
         }
@@ -531,17 +556,6 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
                 setRightBottomRadius(rightBottom)
                 setLeftBottomRadius(leftBottom)
             }
-        }
-    }
-
-    private fun refreshImageType(child: View, resource: Drawable) {
-        if (child is RoundImageView) {
-            val type = when {
-                resource is GifDrawable -> RoundImageView.TYPE_GIF
-                resource.intrinsicHeight > getWindowHeight(context) -> RoundImageView.TYPE_LONG
-                else -> 0
-            }
-            child.setImageType(type)
         }
     }
 

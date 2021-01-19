@@ -41,7 +41,7 @@ class ImageAdapter(private val mData: MutableList<DongYu>) :
         holder.icon.setImageResource(data.icon)
         if (data.images.size == 1) {
             // 请设置实际图片宽高，否则可能造成显示错误
-            holder.gridImageView.setImageViewSize(700, 400)
+            holder.gridImageView.setImageViewSize(400, 2650)
             //  Glide.with(holder.itemView.context).load(data.images[0]).into(holder.roundImageView)
         }
         holder.gridImageView.setImageUrls(data.images)

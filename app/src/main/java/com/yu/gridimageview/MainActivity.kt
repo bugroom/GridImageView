@@ -34,6 +34,9 @@ class MainActivity : AppCompatActivity() {
 
         val url4 = "https://drny.cc/image/Screenshot_2021-01-19-12-15-18-134_com.android.se.jpg"
 
+        // val url5 = "https://drny.cc/yu/upload/4615f850da367d5f6a6e26de05230f45_width=1080height=2340.jpg"
+        // val url6 = "https://drny.cc/yu/upload/58e78955f5c8aeed7a9e0c881b6701c9_width=1080height=2340.jpg"
+
         repeat(1000) {
             val imageData = mutableListOf<String>()
             val i = (0..3).random()

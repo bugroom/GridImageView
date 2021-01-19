@@ -1,7 +1,6 @@
 package com.gridimageview.yu
 
 import android.content.Context
-import android.view.Window
 
 fun Float.dp2Px(context: Context): Float {
     val scale = context.resources.displayMetrics.density
@@ -9,5 +8,5 @@ fun Float.dp2Px(context: Context): Float {
 }
 
 fun getWindowHeight(context: Context): Int {
-    return context.resources.displayMetrics.heightPixels
+    return context.resources.displayMetrics.heightPixels + 100
 }
