@@ -82,6 +82,11 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
     private var singleViewHandle: Boolean
 
     /**
+     *  单张图片是否满宽
+     */
+    private var singleViewFullWidth: Boolean
+
+    /**
      *  图片提示显示位置
      */
     private var imageTipsGravity: Int
@@ -135,6 +140,8 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
 
             singleViewHandle = getBoolean(R.styleable.GridImageView_singleViewHandle, true)
 
+            singleViewFullWidth = getBoolean(R.styleable.GridImageView_singleViewFullWidth, false)
+
             imageTipsGravity =
                 getInteger(R.styleable.GridImageView_imageTipsGravity, RoundImageView.GRAVITY_TOP)
 
@@ -187,6 +194,14 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
     fun setImageTipsGravity(gravity: Int) {
         this.imageTipsGravity = gravity
     }
+
+    /**
+     *  单张图片满宽显示
+     */
+    fun setSingleViewFullWidth(isFull: Boolean) {
+        this.singleViewFullWidth = isFull
+    }
+
 
     fun setOnImageItemClickListener(listener: OnImageItemClickListener) {
         this.onImageItemClickListener = listener
@@ -260,6 +275,10 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
 
         val parentWidth = MeasureSpec.getSize(widthMeasureSpec)
 
+        if (mUrls.size == 1) {
+            loadSingleImageView(parentWidth)
+        }
+
         val availableWidth = parentWidth - paddingLeft - paddingRight
         var resultWidth: Int
         var resultHeight = 0
@@ -323,9 +342,6 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
         resultWidth += paddingLeft + paddingRight
         resultHeight += paddingTop + paddingBottom
         setMeasuredDimension(resultWidth, resultHeight)
-        if (mUrls.size == 1) {
-            loadSingleImageView(parentWidth)
-        }
     }
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
@@ -420,23 +436,30 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
      */
     private fun singleImageViewSurplus(parentWidth: Int) {
         singleViewHandle = false
-        if (imageViewHeight > parentWidth / 2 || imageViewWidth >= parentWidth) {
-            var x = 3
-            if (imageViewWidth < imageViewHeight) {
-                x = 4
-                if (imageViewHeight > 2 * imageViewWidth) x = 6
-            }
-            val a = parentWidth * 2 / x
-            val scaleX = imageViewWidth / a.toFloat()
-            imageViewWidth = a
-            imageViewHeight = (imageViewHeight / scaleX).toInt()
-            if (imageViewHeight >= parentWidth * 2 / 3) imageViewHeight = parentWidth / 2
+        if (imageViewWidth == 0 || imageViewHeight == 0) return
+        if (singleViewFullWidth) {
+            val scale = parentWidth.toFloat() / imageViewWidth
+            imageViewWidth = parentWidth - paddingLeft - paddingRight
+            imageViewHeight = (scale * imageViewHeight).toInt() - paddingTop - paddingBottom
         } else {
-            val width = parentWidth * 2 / 3
-            if (imageViewWidth < width) {
-                val scaleX = imageViewWidth / width.toFloat()
-                imageViewWidth = width
+            if (imageViewHeight > parentWidth / 2 || imageViewWidth >= parentWidth) {
+                var x = 3
+                if (imageViewWidth < imageViewHeight) {
+                    x = 4
+                    if (imageViewHeight > 2 * imageViewWidth) x = 6
+                }
+                val a = parentWidth * 2 / x
+                val scaleX = imageViewWidth / a.toFloat()
+                imageViewWidth = a
                 imageViewHeight = (imageViewHeight / scaleX).toInt()
+                if (imageViewHeight >= parentWidth * 2 / 3) imageViewHeight = parentWidth / 2
+            } else {
+                val width = parentWidth * 2 / 3
+                if (imageViewWidth < width) {
+                    val scaleX = imageViewWidth / width.toFloat()
+                    imageViewWidth = width
+                    imageViewHeight = (imageViewHeight / scaleX).toInt()
+                }
             }
         }
     }
@@ -472,30 +495,13 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
                 })
                 .into(child)
         } else {
-            if (imageViewHeight > windowHeight) {
-                if (child is RoundImageView) {
-                    child.setImageType(RoundImageView.TYPE_LONG)
-                }
-            }
             // 单个 View 进行宽高处理
             if (singleViewHandle || imageViewHeight > parentWidth || imageViewWidth > parentWidth) {
                 singleImageViewSurplus(parentWidth)
             }
             Glide.with(context).load(mUrls[0]).override(imageViewWidth, imageViewHeight)
-                .listener(object : RequestListener<Drawable>() {
-                    override fun onRequestSuccess(resource: Drawable): Boolean {
-                        if (child is RoundImageView) {
-                            if (resource is GifDrawable) {
-                                child.setImageType(RoundImageView.TYPE_GIF)
-                            }
-                        }
-                        return false
-                    }
-
-                    override fun onRequestFail() {}
-
-                })
                 .centerCrop().placeholder(imagePlaceHolder).into(child)
+            refreshImageTip(child, mUrls[0])
         }
     }
 
@@ -562,7 +568,7 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
                             child.setImageType(RoundImageView.TYPE_GIF)
                         } else {
                             val bitmap = getBitmap(resource)
-                            child.setImageType(if (bitmap.height > windowHeight) RoundImageView.TYPE_LONG else 0)
+                            child.setImageType(if (bitmap.height > windowHeight && bitmap.width < 2340) RoundImageView.TYPE_LONG else 0)
                         }
                         return true
                     }

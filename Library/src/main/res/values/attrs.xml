@@ -17,6 +17,7 @@
         <attr name="imageBorderWidth" format="dimension"/>
         <attr name="imageBorderColor" format="color"/>
         <attr name="singleViewHandle" format="boolean"/>
+        <attr name="singleViewFullWidth" format="boolean"/>
         <attr name="imagePlaceHolder" format="reference"/>
         <attr name="imageTipsGravity" format="flags">
             <flag name="top" value="0"/>

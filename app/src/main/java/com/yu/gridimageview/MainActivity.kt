@@ -3,6 +3,7 @@ package com.yu.gridimageview
 import android.graphics.Rect
 import android.os.Bundle
 import android.view.View
+import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -20,6 +21,10 @@ class MainActivity : AppCompatActivity() {
         recyclerView.addItemDecoration(LinearItemDecoration())
         val adapter = ImageAdapter(mData)
         recyclerView.adapter = adapter
+
+        findViewById<Button>(R.id.button).setOnClickListener {
+            adapter.notifyDataSetChanged()
+        }
     }
 
     private fun getData() {
@@ -32,16 +37,11 @@ class MainActivity : AppCompatActivity() {
 
         val url3 = "https://t7.baidu.com/it/u=86095685,3663716840&fm=193&f=GIF"
 
-        val url4 = "https://drny.cc/image/Screenshot_2021-01-19-12-15-18-134_com.android.se.jpg"
-
-        // val url5 = "https://drny.cc/yu/upload/4615f850da367d5f6a6e26de05230f45_width=1080height=2340.jpg"
-        // val url6 = "https://drny.cc/yu/upload/58e78955f5c8aeed7a9e0c881b6701c9_width=1080height=2340.jpg"
-
         repeat(1000) {
             val imageData = mutableListOf<String>()
             val i = (0..3).random()
             if (i == 1) {
-                imageData.add(url4)
+                imageData.add(url1)
             } else {
                 for (j in 0 until 3 * i) {
                     imageData.add(
