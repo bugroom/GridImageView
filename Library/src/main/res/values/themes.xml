@@ -9,7 +9,7 @@
         <item name="strokeWidth">0.5dp</item>
     </style>
     <style name="GridImageViewStyle">
-        <item name="isRuleSort">true</item>
+        <item name="isRuleSort">false</item>
         <item name="imagePlaceHolder">@drawable/ic_loading</item>
     </style>
 </resources>

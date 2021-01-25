@@ -8,7 +8,7 @@ publish {
     userOrg = 'yu2002'
     groupId = 'com.gridimageview.yu'
     artifactId = 'gridimageview'
-    publishVersion = '1.1.5'
+    publishVersion = '1.1.6'
     desc = 'Grid display picture.'
     website = 'https://github.com/yu2002s/GridImageView'
 }

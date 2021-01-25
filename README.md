@@ -12,7 +12,7 @@
 ### 1.添加如下配置到你的工程中
 ```groovy
 dependencies {
-    implementation 'com.gridimageview.yu:gridimageview:1.1.5'
+    implementation 'com.gridimageview.yu:gridimageview:1.1.6'
 }
 ```
 ### 2.布局文件添加代码
