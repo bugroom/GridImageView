@@ -276,7 +276,12 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
         val parentWidth = MeasureSpec.getSize(widthMeasureSpec)
 
         if (mUrls.size == 1) {
-            loadSingleImageView(parentWidth)
+            loadSingleImageView(parentWidth - paddingLeft - paddingRight)
+            setMeasuredDimension(
+                parentWidth,
+                imageViewHeight + paddingTop + paddingBottom
+            )
+            return
         }
 
         val availableWidth = parentWidth - paddingLeft - paddingRight
@@ -286,33 +291,22 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
 
         if (isRuleSort) {
             spanCount = getSpanCount() as Int
-            val childWidth = if (mUrls.size == 1) imageViewWidth
-            else (availableWidth - imageSpacing * (spanCount - 1)) / spanCount
+            val childWidth = (availableWidth - imageSpacing * (spanCount - 1)) / spanCount
             val childWidthMeasureSpec = MeasureSpec.makeMeasureSpec(childWidth, MeasureSpec.EXACTLY)
-            val childHeightMeasureSpec = if (mUrls.size == 1)
-                MeasureSpec.makeMeasureSpec(
-                    imageViewHeight,
-                    MeasureSpec.EXACTLY
-                ) else childWidthMeasureSpec
-
             for (i in 0 until mUrls.size) {
                 val child = getChildAt(i)
-                child.measure(childWidthMeasureSpec, childHeightMeasureSpec)
+                child.measure(childWidthMeasureSpec, childWidthMeasureSpec)
             }
             resultWidth = if (mUrls.size == 2) childWidth * 2 + imageSpacing else availableWidth
             resultHeight = rowCount * childWidth + (rowCount - 1) * imageSpacing
-            if (mUrls.size == 1) {
-                resultWidth = imageViewWidth
-                resultHeight = imageViewHeight
-            }
         } else {
             spanCounts = getSpanCount() as IntArray
             var index = 0
             spanCounts.forEachIndexed { row, span ->
-                val childWidth = if (span == 1) if (mUrls.size == 1) imageViewWidth
-                else availableWidth else (availableWidth - imageSpacing * (span - 1)) / span
+                val childWidth =
+                    if (span == 1) availableWidth else (availableWidth - imageSpacing * (span - 1)) / span
                 val childHeight = when (span) {
-                    1 -> if (mUrls.size == 1) imageViewHeight else childWidth / 2
+                    1 -> childWidth / 2
                     2 -> {
                         val i = if (mUrls.size > 4) 3 else 2
                         if (i == 2) {
@@ -347,6 +341,20 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
 
         if (mUrls.size == 0) {
+            return
+        }
+
+        if (mUrls.size == 1) {
+            val child = getChildAt(0)
+            if (child is RoundImageView) {
+                child.setImageRadius(imageCornerRadius)
+            }
+            child.layout(
+                paddingLeft,
+                paddingTop,
+                paddingLeft + imageViewWidth,
+                paddingTop + imageViewHeight
+            )
             return
         }
 
@@ -386,7 +394,7 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
                     )
                     childTop += child.measuredHeight + imageSpacing
                     childBottom = childTop + child.measuredHeight
-                    if (child is RoundImageView && mUrls.size != 1) {
+                    if (child is RoundImageView) {
                         child.setLeftTopRadius(imageCornerRadius)
                         child.setRightTopRadius(imageCornerRadius)
                         child.setLeftBottomRadius(0f)
@@ -411,19 +419,13 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
             }
         }
 
-        if (mUrls.size == 1) {
-            val child = getChildAt(0)
-            if (child is RoundImageView) {
-                child.setImageRadius(imageCornerRadius)
-            }
-        }
-
         if (mUrls.size > 1) {
             for (i in 0 until mUrls.size) {
                 val child = getChildAt(i)
                 if (child is ImageView) {
                     refreshImageTip(child, mUrls[i])
                     Glide.with(context).load(mUrls[i]).centerCrop()
+                        .override(child.measuredWidth, child.measuredHeight)
                         .placeholder(imagePlaceHolder).error(imagePlaceHolder).into(child)
                 }
             }
@@ -435,12 +437,11 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
      *  @param parentWidth 父容器宽度
      */
     private fun singleImageViewSurplus(parentWidth: Int) {
-        singleViewHandle = false
         if (imageViewWidth == 0 || imageViewHeight == 0) return
         if (singleViewFullWidth) {
             val scale = parentWidth.toFloat() / imageViewWidth
-            imageViewWidth = parentWidth - paddingLeft - paddingRight
-            imageViewHeight = (scale * imageViewHeight).toInt() - paddingTop - paddingBottom
+            imageViewWidth = parentWidth
+            imageViewHeight = (scale * imageViewHeight).toInt()
         } else {
             if (imageViewHeight > parentWidth / 2 || imageViewWidth >= parentWidth) {
                 var x = 3
@@ -483,7 +484,7 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
                         imageViewWidth = resource.intrinsicWidth
                         imageViewHeight = resource.intrinsicHeight
                         // 单个 View 进行宽高处理
-                        if (singleViewHandle || imageViewHeight > parentWidth || imageViewWidth > parentWidth) {
+                        if (singleViewHandle && (imageViewHeight > parentWidth || imageViewWidth > parentWidth)) {
                             singleImageViewSurplus(parentWidth)
                         }
                         return false
@@ -496,7 +497,7 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
                 .into(child)
         } else {
             // 单个 View 进行宽高处理
-            if (singleViewHandle || imageViewHeight > parentWidth || imageViewWidth > parentWidth) {
+            if (singleViewHandle && imageViewWidth > parentWidth && imageViewHeight > parentWidth) {
                 singleImageViewSurplus(parentWidth)
             }
             Glide.with(context).load(mUrls[0]).override(imageViewWidth, imageViewHeight)
@@ -511,9 +512,6 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
     private fun View.drawRoundCorner(i: Int, row: Int, span: Int, index: Int? = null) {
         this.apply {
             if (this is RoundImageView) {
-                if (mUrls.size == 1) {
-                    return@apply
-                }
                 var leftTop = 0f
                 var rightTop = 0f
                 var leftBottom = 0f
