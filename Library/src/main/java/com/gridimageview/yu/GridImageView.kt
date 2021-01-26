@@ -1,5 +1,6 @@
 package com.gridimageview.yu
 
+import android.app.Activity
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -13,6 +14,7 @@ import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.Toast
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.gif.GifDrawable
 import com.bumptech.glide.request.target.Target
@@ -40,6 +42,16 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
      *  行数
      */
     private var rowCount = 0
+
+    /**
+     *  最多可显示的图片数量
+     */
+    private var imageMaxCount = 9
+
+    /**
+     *  要显示的图片数量
+     */
+    private var imageActualCount = 0
 
     /**
      *  列数(非规则显示)
@@ -85,11 +97,6 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
      *  单张图片是否满宽
      */
     private var singleViewFullWidth: Boolean
-
-    /**
-     *  图片提示显示位置
-     */
-    private var imageTipsGravity: Int
 
     /**
      *  手机屏幕高度
@@ -142,11 +149,21 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
 
             singleViewFullWidth = getBoolean(R.styleable.GridImageView_singleViewFullWidth, false)
 
-            imageTipsGravity =
-                getInteger(R.styleable.GridImageView_imageTipsGravity, RoundImageView.GRAVITY_TOP)
+            imageMaxCount = getInteger(R.styleable.GridImageView_imageMaxCount, 9)
+
+            if (imageMaxCount !in 2..9) {
+                Toast.makeText(
+                    context,
+                    "The imageMaxCount range of attribute a is 2 to 9",
+                    Toast.LENGTH_LONG
+                ).show()
+                // throw RuntimeException("The imageMaxCount range of attribute a is 2 to 9")
+                if (context is Activity) {
+                    context.moveTaskToBack(false)
+                }
+            }
 
             recycle()
-
         }
 
         windowHeight = getWindowHeight(context)
@@ -188,14 +205,6 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
     }
 
     /**
-     *  设置图片提示位置
-     *  @param gravity 0 And 1 -> top bottom
-     */
-    fun setImageTipsGravity(gravity: Int) {
-        this.imageTipsGravity = gravity
-    }
-
-    /**
      *  单张图片满宽显示
      */
     fun setSingleViewFullWidth(isFull: Boolean) {
@@ -208,18 +217,20 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
     }
 
     fun setImageUrls(urls: List<String>?) {
+
         if (urls.isNullOrEmpty()) {
             visibility = GONE
             return
         }
         if (visibility == GONE) visibility = VISIBLE
 
-        val size = min(urls.size, 9)
+        val size = min(urls.size, imageMaxCount)
+        imageActualCount = urls.size
 
         mUrls.clear()
-        if (urls.size > 9) {
+        if (imageActualCount > imageMaxCount) {
             urls.forEachIndexed { index, url ->
-                if (index < 9) {
+                if (index < imageMaxCount) {
                     mUrls.add(url)
                 }
             }
@@ -232,7 +243,6 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
                 val roundImageView = RoundImageView(context)
                 roundImageView.setStrokeWidth(imageStrokeWidth)
                 roundImageView.setStrokeColor(imageBorderColor)
-                roundImageView.setImageTipsGravity(imageTipsGravity)
                 roundImageView.setOnClickListener {
                     if (::onImageItemClickListener.isInitialized) {
                         onImageItemClickListener.onImageItemClick(this, it, i)
@@ -257,18 +267,11 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
                 }
             }
         }
-
-        if (urls.size > 9) {
-            val child = getChildAt(8)
-            if (child is RoundImageView) {
-                child.setImageCount(urls.size)
-            }
-        }
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
 
-        if (mUrls.size == 0) {
+        if (mUrls.size == 0 || childCount == 0) {
             setMeasuredDimension(0, 0)
             return
         }
@@ -340,7 +343,7 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
 
-        if (mUrls.size == 0) {
+        if (mUrls.size == 0 || childCount == 0) {
             return
         }
 
@@ -362,6 +365,7 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
         var childTop: Int
         var childRight: Int
         var childBottom: Int
+        var firstLineEnd = 0
         if (isRuleSort) {
             var row: Int
             var span: Int
@@ -380,11 +384,15 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
                 child.layout(childLeft, childTop, childRight, childBottom)
                 child.drawRoundCorner(i, row, span)
             }
+            firstLineEnd = spanCount - 1
         } else {
             var index = 0
             childTop = paddingTop
             childBottom = 0
             spanCounts.forEachIndexed { row, span ->
+                if (row == 0) {
+                    firstLineEnd = span - 1
+                }
                 if (span == 1) {
                     index++
                     val child = getChildAt(0)
@@ -423,11 +431,21 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
             for (i in 0 until mUrls.size) {
                 val child = getChildAt(i)
                 if (child is ImageView) {
-                    refreshImageTip(child, mUrls[i])
+                    if (imageActualCount <= imageMaxCount || i != firstLineEnd) {
+                        refreshImageTip(child, mUrls[i])
+                    }
                     Glide.with(context).load(mUrls[i]).centerCrop()
                         .override(child.measuredWidth, child.measuredHeight)
                         .placeholder(imagePlaceHolder).error(imagePlaceHolder).into(child)
                 }
+            }
+        }
+
+        if (imageActualCount > imageMaxCount) {
+            val child = getChildAt(firstLineEnd)
+            if (child is RoundImageView) {
+                child.setImageMaxCount(imageMaxCount)
+                child.setImageCount(imageActualCount)
             }
         }
     }
@@ -474,6 +492,10 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
             throw ClassCastException("childView must be ImageView.\nchildView必须是ImageView")
         }
 
+        if (child is RoundImageView) {
+            child.setImageCount(0)
+        }
+
         if (imageViewWidth <= 0 || imageViewHeight <= 0) {
             Log.w(TAG, "please set imageWidth and imageHeight.")
             Glide.with(context).load(mUrls[0])
@@ -497,7 +519,7 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
                 .into(child)
         } else {
             // 单个 View 进行宽高处理
-            if (singleViewHandle && (imageViewWidth > parentWidth || imageViewHeight > parentWidth)) {
+            if (singleViewHandle) {
                 singleImageViewSurplus(parentWidth)
             }
             Glide.with(context).load(mUrls[0]).override(imageViewWidth, imageViewHeight)

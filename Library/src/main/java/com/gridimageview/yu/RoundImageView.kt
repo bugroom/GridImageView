@@ -28,9 +28,6 @@ class RoundImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr
 
         private const val TAG = "RoundImageView"
 
-        const val GRAVITY_TOP = 0
-        const val GRAVITY_BOTTOM = 1
-
         const val TYPE_LONG = 2
         const val TYPE_GIF = 3
     }
@@ -49,9 +46,9 @@ class RoundImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr
     private var borderColor: Int
 
     private var imageCount = 0
-    private var imageCountTipsGravity = GRAVITY_TOP
+    private var imageMaxCount = 9
     private var imageType = 0
-    private var imageTipsColor = Color.argb(150, 0, 0, 0)
+    private var imageTipsColor = Color.argb(120, 0, 0, 0)
     private var imageCountTipsX = 0f
     private var imageCountTipsY = 0f
 
@@ -131,28 +128,19 @@ class RoundImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr
         this.imageCount = count
     }
 
+    fun setImageMaxCount(count: Int) {
+        this.imageMaxCount = count
+    }
+
     /**
      *  设置图片具体类型
      *  @param type #TYPE_LONG And #TYPE_GIF
      */
     fun setImageType(type: Int) {
-        this.imageType = type
         if (type == TYPE_LONG || type == TYPE_GIF || type == 0) {
-            invalidate()
+            this.imageType = type
         } else {
             Log.w(TAG, "type must be TYPE_LONG and TYPE_GIF")
-        }
-    }
-
-    /**
-     *  设置提示显示的位置
-     *  @param gravity #GRAVITY_TOP And #GRAVITY_BOTTOM
-     */
-    fun setImageTipsGravity(gravity: Int) {
-        if (gravity == GRAVITY_TOP || gravity == GRAVITY_BOTTOM) {
-            this.imageCountTipsGravity = gravity
-        } else {
-            Log.w(TAG, "Gravity must be GRAVITY_TOP and GRAVITY_BOTTOM")
         }
     }
 
@@ -174,41 +162,12 @@ class RoundImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr
         // mPaint.xfermode = xfermode
         // 绘制边界
         canvas.drawPath(mPath, mPaint)
-        if (imageCount > 9 || imageType == TYPE_LONG || imageType == TYPE_GIF) {
-            mPath.reset()
-            mPaint.color = imageTipsColor
-            mPaint.style = Paint.Style.FILL
-            mPaint.textSize = 28f
-            val str = when {
-                imageCount > 9 -> imageCount + "图"
-                imageType == TYPE_LONG -> "长图"
-                else -> "动图"
-            }
-            val strWidth = mPaint.measureText(str)
-            val fontMatrix = mPaint.fontMetrics
-            val strHeight = abs(fontMatrix.ascent) - fontMatrix.descent
-            imageCountTipsX = width - strWidth - 30
-            imageCountTipsY = if (imageCountTipsGravity == GRAVITY_TOP) {
-                0f
-            } else {
-                height - strHeight - 30
-            }
-            mPath.addRect(
-                imageCountTipsX,
-                imageCountTipsY,
-                width.toFloat(),
-                imageCountTipsY + strHeight + 30,
-                Path.Direction.CW
-            )
-            canvas.drawPath(mPath, mPaint)
-            mPaint.color = Color.WHITE
-            canvas.drawTextOnPath(
-                str,
-                mPath,
-                (width - imageCountTipsX - strWidth) / 2,
-                (strHeight * 2 + 30) / 2,
-                mPaint
-            )
+        if (imageCount > imageMaxCount) {
+            drawTextPath(canvas, imageCount + "图", true)
+        }
+        if (imageType == TYPE_LONG || imageType == TYPE_GIF) {
+            val str = if (imageType == TYPE_LONG) "长图" else "动图"
+            drawTextPath(canvas, str, false)
         }
     }
 
@@ -217,6 +176,39 @@ class RoundImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr
         radii[2] = rightTopRadius.also { radii[3] = it }
         radii[4] = rightBottomRadius.also { radii[5] = it }
         radii[6] = leftBottomRadius.also { radii[7] = it }
+    }
+
+    private fun drawTextPath(canvas: Canvas, str: String, isTop: Boolean) {
+        mPath.reset()
+        mPaint.reset()
+        mPaint.color = imageTipsColor
+        mPaint.style = Paint.Style.FILL
+        mPaint.textSize = 28f
+        val strWidth = mPaint.measureText(str)
+        val fontMatrix = mPaint.fontMetrics
+        val strHeight = abs(fontMatrix.ascent) - fontMatrix.descent
+        imageCountTipsX = width - strWidth - 30
+        imageCountTipsY = if (isTop) {
+            0f
+        } else {
+            height - strHeight - 30
+        }
+        mPath.addRect(
+            imageCountTipsX,
+            imageCountTipsY,
+            width.toFloat(),
+            imageCountTipsY + strHeight + 30,
+            Path.Direction.CW
+        )
+        canvas.drawPath(mPath, mPaint)
+        mPaint.color = Color.WHITE
+        canvas.drawTextOnPath(
+            str,
+            mPath,
+            (width - imageCountTipsX - strWidth) / 2,
+            (strHeight * 2 + 30) / 2,
+            mPaint
+        )
     }
 
     private operator fun Int.plus(s: String): String {

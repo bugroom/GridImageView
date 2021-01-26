@@ -12,7 +12,7 @@
 ### 1.添加如下配置到你的工程中
 ```groovy
 dependencies {
-    implementation 'com.gridimageview.yu:gridimageview:1.1.6'
+    implementation 'com.gridimageview.yu:gridimageview:1.1.7'
 }
 ```
 ### 2.布局文件添加代码
@@ -91,7 +91,7 @@ imageBorderColor|无|设置边框颜色
 singleViewHandle|无|是否对图片宽高进行处理
 singleViewFullWidth|setSingleViewFullWidth|单张图片宽度设置为最大
 imagePlaceHolder|setImagePlaceHolder|设置占位图,参数类型为drawable
-imageTipsGravity|setImageTipsGravity|设置图片里的Tips显示位置,默认为top
+imageMaxCount|无|最多可展示图片的数量,超出右上角会显示图片实际数量
 
 **注意：如果你能确保你的图片能在布局中完整显示,可以设置singleViewHandle为false**
 

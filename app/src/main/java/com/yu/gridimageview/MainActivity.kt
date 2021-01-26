@@ -37,17 +37,19 @@ class MainActivity : AppCompatActivity() {
 
         val url3 = "https://t7.baidu.com/it/u=86095685,3663716840&fm=193&f=GIF"
 
+        val url4 = "https://drny.cc/yu/upload/37c7c0b7dda6fbd6df3f18eaeaa6c84a.jpg"
+
         repeat(1000) {
             val imageData = mutableListOf<String>()
             val i = (0..3).random()
             if (i == 1) {
-                imageData.add(url1)
+                imageData.add(url4)
             } else {
                 for (j in 0 until 3 * i) {
                     imageData.add(
                         when {
                             j % 3 == 1 -> url1
-                            j % 3 == 0 -> url2
+                            j % 3 == 0 -> url4
                             else -> url3
                         }
                     )

@@ -19,9 +19,6 @@
         <attr name="singleViewHandle" format="boolean"/>
         <attr name="singleViewFullWidth" format="boolean"/>
         <attr name="imagePlaceHolder" format="reference"/>
-        <attr name="imageTipsGravity" format="flags">
-            <flag name="top" value="0"/>
-            <flag name="bottom" value="1"/>
-        </attr>
+        <attr name="imageMaxCount" format="integer"/>
     </declare-styleable>
 </resources>
