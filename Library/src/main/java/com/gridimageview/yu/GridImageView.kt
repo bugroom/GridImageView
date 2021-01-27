@@ -496,6 +496,9 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
             child.setImageCount(0)
         }
 
+        val isHandle = singleViewHandle && (imageViewWidth !in 250..parentWidth
+                || imageViewHeight !in 250..parentWidth)
+
         if (imageViewWidth <= 0 || imageViewHeight <= 0) {
             Log.w(TAG, "please set imageWidth and imageHeight.")
             Glide.with(context).load(mUrls[0])
@@ -506,7 +509,7 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
                         imageViewWidth = resource.intrinsicWidth
                         imageViewHeight = resource.intrinsicHeight
                         // 单个 View 进行宽高处理
-                        if (singleViewHandle && (imageViewHeight > parentWidth || imageViewWidth > parentWidth)) {
+                        if (isHandle) {
                             singleImageViewSurplus(parentWidth)
                         }
                         return false
@@ -519,7 +522,7 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
                 .into(child)
         } else {
             // 单个 View 进行宽高处理
-            if (singleViewHandle) {
+            if (isHandle) {
                 singleImageViewSurplus(parentWidth)
             }
             Glide.with(context).load(mUrls[0]).override(imageViewWidth, imageViewHeight)

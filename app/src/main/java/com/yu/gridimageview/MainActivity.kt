@@ -37,7 +37,7 @@ class MainActivity : AppCompatActivity() {
 
         val url3 = "https://t7.baidu.com/it/u=86095685,3663716840&fm=193&f=GIF"
 
-        val url4 = "https://drny.cc/yu/upload/37c7c0b7dda6fbd6df3f18eaeaa6c84a.jpg"
+        val url4 = "https://drny.cc/yu/upload/e64a10e80cc9f559bc4690a45de55cc2.jpg"
 
         repeat(1000) {
             val imageData = mutableListOf<String>()
