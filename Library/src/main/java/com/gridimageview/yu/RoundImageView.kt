@@ -30,6 +30,9 @@ class RoundImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr
 
         const val TYPE_LONG = 2
         const val TYPE_GIF = 3
+
+        const val STYLE_TIPS_SMALL = 0
+        const val STYLE_TIPS_BIG = 1
     }
 
     // private val xfermode: PorterDuffXfermode
@@ -49,6 +52,7 @@ class RoundImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr
     private var imageMaxCount = 9
     private var imageType = 0
     private var imageTipsColor = Color.argb(120, 0, 0, 0)
+    private var imageTipsStyle = STYLE_TIPS_SMALL
     private var imageCountTipsX = 0f
     private var imageCountTipsY = 0f
 
@@ -132,6 +136,10 @@ class RoundImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr
         this.imageMaxCount = count
     }
 
+    fun setImageTipsStyle(style: Int) {
+        this.imageTipsStyle = style
+    }
+
     /**
      *  设置图片具体类型
      *  @param type #TYPE_LONG And #TYPE_GIF
@@ -151,19 +159,32 @@ class RoundImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr
         // 横轴半径和纵轴半径， 8 个 数组组成 左上开始
         refreshRadii()
         // 顺时针绘制 CW， 添加圆角矩形
-        mPath.addRoundRect(rectF, radii, Path.Direction.CW)
+        mPath.addRoundRect(rectF, radii, Path.Direction.CCW)
         // 对画布进行裁剪
         canvas.clipPath(mPath)
         super.onDraw(canvas)
-        mPaint.style = Paint.Style.STROKE
+        mPaint.style = if (imageTipsStyle == STYLE_TIPS_SMALL || imageCount <= imageMaxCount)
+            Paint.Style.STROKE else {
+            Paint.Style.FILL
+        }
         mPaint.isAntiAlias = true
-        mPaint.color = borderColor
+        mPaint.color = if (imageTipsStyle == STYLE_TIPS_SMALL || imageCount <= imageMaxCount)
+            borderColor else imageTipsColor
         mPaint.strokeWidth = borderWidth
         // mPaint.xfermode = xfermode
         // 绘制边界
         canvas.drawPath(mPath, mPaint)
         if (imageCount > imageMaxCount) {
-            drawTextPath(canvas, imageCount + "图", true)
+            if (imageTipsStyle == STYLE_TIPS_SMALL) {
+                drawTextPath(canvas, imageCount + "图", true)
+            } else {
+                val str = "+${imageCount - imageMaxCount}"
+                mPaint.color = Color.WHITE
+                mPaint.textSize = if (width > 350) 100f else 65f
+                val strWidth = mPaint.measureText(str)
+                val strHeight = getTextHeight()
+                canvas.drawText(str, width / 2 - strWidth / 2, height / 2 + strHeight / 2, mPaint)
+            }
         }
         if (imageType == TYPE_LONG || imageType == TYPE_GIF) {
             val str = if (imageType == TYPE_LONG) "长图" else "动图"
@@ -180,13 +201,11 @@ class RoundImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr
 
     private fun drawTextPath(canvas: Canvas, str: String, isTop: Boolean) {
         mPath.reset()
-        mPaint.reset()
         mPaint.color = imageTipsColor
         mPaint.style = Paint.Style.FILL
         mPaint.textSize = 28f
         val strWidth = mPaint.measureText(str)
-        val fontMatrix = mPaint.fontMetrics
-        val strHeight = abs(fontMatrix.ascent) - fontMatrix.descent
+        val strHeight = getTextHeight()
         imageCountTipsX = width - strWidth - 30
         imageCountTipsY = if (isTop) {
             0f
@@ -205,10 +224,15 @@ class RoundImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr
         canvas.drawTextOnPath(
             str,
             mPath,
-            (width - imageCountTipsX - strWidth) / 2,
+            15f,
             (strHeight * 2 + 30) / 2,
             mPaint
         )
+    }
+
+    private fun getTextHeight(): Float {
+        val fontMatrix = mPaint.fontMetrics
+        return abs(fontMatrix.ascent) - fontMatrix.descent
     }
 
     private operator fun Int.plus(s: String): String {

@@ -20,5 +20,9 @@
         <attr name="singleViewFullWidth" format="boolean"/>
         <attr name="imagePlaceHolder" format="reference"/>
         <attr name="imageMaxCount" format="integer"/>
+        <attr name="imageTipStyle" format="flags">
+            <flag name="small" value="0"/>
+            <flag name="big" value="1"/>
+        </attr>
     </declare-styleable>
 </resources>
