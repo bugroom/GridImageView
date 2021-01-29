@@ -29,6 +29,11 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
     ViewGroup(context, attributeSet, defStyleAttr) {
 
     /**
+     *  图片链接集合
+     */
+    private val mUrls = mutableListOf<String>()
+
+    /**
      *  列数(规则排序）
      */
     private var spanCount = 0
@@ -258,15 +263,12 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
         }
         if (visibility == GONE) visibility = VISIBLE
 
+        mUrls.clear()
+        mUrls.addAll(urls)
         imageActualCount = min(urls.size, imageMaxCount)
 
         createView()
         rvHandle()
-
-        if (imageActualCount == 1) {
-            loadSingleImageView(parentWidth - paddingLeft - paddingRight, urls[0])
-            return
-        }
 
         refreshData(urls)
     }
@@ -283,16 +285,6 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
         } else {
             spanCounts = getSpanCount() as IntArray
             firstLineEnd = spanCounts[0] - 1
-        }
-
-        for (i in 0 until imageActualCount) {
-            val child = getChildAt(i)
-            if (child is ImageView) {
-                refreshImageTip(child, urls[i])
-                Glide.with(context).load(urls[i]).centerCrop()
-                    .override(child.measuredWidth, child.measuredHeight)
-                    .placeholder(imagePlaceHolder).error(imagePlaceHolder).into(child)
-            }
         }
 
         if (imageTipsStyle == RoundImageView.STYLE_TIPS_BIG) {
@@ -355,6 +347,7 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
         }
 
         if (imageActualCount == 1) {
+            loadSingleImageView(parentWidth - paddingLeft - paddingRight, mUrls[0])
             setMeasuredDimension(
                 parentWidth,
                 imageViewHeight + paddingTop + paddingBottom
@@ -377,7 +370,6 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
                 if (imageActualCount == 2) childWidth * 2 + imageSpacing else availableWidth
             resultHeight = rowCount * childWidth + (rowCount - 1) * imageSpacing
         } else {
-            spanCounts = getSpanCount() as IntArray
             var index = 0
             spanCounts.forEachIndexed { row, span ->
                 val childWidth =
@@ -495,6 +487,16 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
                 }
             }
         }
+
+        for (i in 0 until imageActualCount) {
+            val child = getChildAt(i)
+            if (child is ImageView) {
+                refreshImageTip(child, mUrls[i])
+                Glide.with(context).load(mUrls[i]).centerCrop()
+                    .override(child.measuredWidth, child.measuredHeight)
+                    .placeholder(imagePlaceHolder).error(imagePlaceHolder).into(child)
+            }
+        }
     }
 
     /**
@@ -572,9 +574,9 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
             if (isHandle) {
                 singleImageViewSurplus(parentWidth)
             }
+            refreshImageTip(child, url)
             Glide.with(context).load(url).override(imageViewWidth, imageViewHeight)
                 .centerCrop().placeholder(imagePlaceHolder).into(child)
-            refreshImageTip(child, url)
         }
     }
 
