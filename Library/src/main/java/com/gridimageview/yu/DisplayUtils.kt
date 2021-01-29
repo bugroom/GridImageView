@@ -8,5 +8,11 @@ fun Float.dp2Px(context: Context): Float {
 }
 
 fun getWindowHeight(context: Context): Int {
-    return context.resources.displayMetrics.heightPixels + 100
+    return context.resources.displayMetrics.heightPixels + 100 + getNavigationBarHeight(context)
+}
+
+private fun getNavigationBarHeight(context: Context): Int {
+    val res = context.resources
+    val resId = res.getIdentifier("navigation_bar_height", "dimen", "android")
+    return res.getDimensionPixelSize(resId)
 }
