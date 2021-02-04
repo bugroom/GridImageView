@@ -163,13 +163,15 @@ class RoundImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr
         // 对画布进行裁剪
         canvas.clipPath(mPath)
         super.onDraw(canvas)
-        mPaint.style = if (imageTipsStyle == STYLE_TIPS_SMALL || imageCount <= imageMaxCount)
-            Paint.Style.STROKE else {
-            Paint.Style.FILL
-        }
+        mPaint.style =
+            if (!isNightMode(context) && (imageTipsStyle == STYLE_TIPS_SMALL || imageCount <= imageMaxCount))
+                Paint.Style.STROKE else {
+                Paint.Style.FILL
+            }
         mPaint.isAntiAlias = true
-        mPaint.color = if (imageTipsStyle == STYLE_TIPS_SMALL || imageCount <= imageMaxCount)
-            borderColor else imageTipsColor
+        mPaint.color =
+            if (!isNightMode(context) && (imageTipsStyle == STYLE_TIPS_SMALL || imageCount <= imageMaxCount))
+                borderColor else imageTipsColor
         mPaint.strokeWidth = borderWidth
         // mPaint.xfermode = xfermode
         // 绘制边界

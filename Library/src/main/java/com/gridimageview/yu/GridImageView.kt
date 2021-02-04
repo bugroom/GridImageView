@@ -8,6 +8,7 @@ import android.graphics.Color
 import android.graphics.drawable.AdaptiveIconDrawable
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.media.Image
 import android.os.Build
 import android.util.AttributeSet
 import android.util.Log
@@ -296,6 +297,13 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
             child.setImageCount(urls.size)
             child.setImageTipsStyle(imageTipsStyle)
         }
+
+        for (i in 0 until imageActualCount) {
+            val childView = getChildAt(i)
+            if (childView is ImageView) {
+                refreshImageTip(childView, urls[i])
+            }
+        }
     }
 
     /**
@@ -491,7 +499,6 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
         for (i in 0 until imageActualCount) {
             val child = getChildAt(i)
             if (child is ImageView) {
-                refreshImageTip(child, mUrls[i])
                 Glide.with(context).load(mUrls[i]).centerCrop()
                     .override(child.measuredWidth, child.measuredHeight)
                     .placeholder(imagePlaceHolder).error(imagePlaceHolder).into(child)
