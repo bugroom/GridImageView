@@ -147,6 +147,7 @@ class RoundImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr
     fun setImageType(type: Int) {
         if (type == TYPE_LONG || type == TYPE_GIF || type == 0) {
             this.imageType = type
+            invalidate()
         } else {
             Log.w(TAG, "type must be TYPE_LONG and TYPE_GIF")
         }

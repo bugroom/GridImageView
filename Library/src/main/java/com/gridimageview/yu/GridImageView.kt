@@ -304,6 +304,7 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
                 refreshImageTip(childView, urls[i])
             }
         }
+        requestLayout()
     }
 
     /**
@@ -344,8 +345,7 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-
-        if (imageActualCount == 0 || imageActualCount == 0) {
+        if (imageActualCount == 0) {
             setMeasuredDimension(0, 0)
             return
         }
@@ -495,13 +495,12 @@ class GridImageView(context: Context, attributeSet: AttributeSet?, defStyleAttr:
                 }
             }
         }
-
         for (i in 0 until imageActualCount) {
-            val child = getChildAt(i)
-            if (child is ImageView) {
+            val childView = getChildAt(i)
+            if (childView is ImageView) {
                 Glide.with(context).load(mUrls[i]).centerCrop()
-                    .override(child.measuredWidth, child.measuredHeight)
-                    .placeholder(imagePlaceHolder).error(imagePlaceHolder).into(child)
+                    .override(childView.measuredWidth, childView.measuredHeight)
+                    .placeholder(imagePlaceHolder).error(imagePlaceHolder).into(childView)
             }
         }
     }

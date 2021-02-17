@@ -49,7 +49,7 @@ class MainActivity : AppCompatActivity() {
                     imageData.add(
                         when {
                             j % 3 == 1 -> url1
-                            j % 3 == 0 -> url4
+                            j % 3 == 0 -> url2
                             else -> url3
                         }
                     )
